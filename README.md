@@ -242,6 +242,15 @@ Buka browser dan akses `http://localhost:3000`
 - [Usage Guide](packages/simulator/USAGE.md) - How to use simulators
 - [Device Integration](packages/simulator/DEVICE-MANAGEMENT-INTEGRATION.md) - Device management integration
 
+### Hardware Implementation (ESP32/Arduino)
+- [Hardware Overview](packages/simulator/hardware/README.md) - Hardware requirements dan setup
+- [Wiring Guide](packages/simulator/hardware/WIRING_GUIDE.md) - Panduan lengkap wiring
+- [Calibration Guide](packages/simulator/hardware/CALIBRATION_GUIDE.md) - Kalibrasi sensor
+- [Deployment Checklist](packages/simulator/hardware/DEPLOYMENT_CHECKLIST.md) - Checklist deployment
+- [FAQ](packages/simulator/hardware/FAQ.md) - Pertanyaan umum
+- [Quick Reference](packages/simulator/hardware/QUICK_REFERENCE.md) - Referensi cepat untuk teknisi
+- [Code Examples](packages/simulator/hardware/) - ESP32 dan Arduino code
+
 ### Specifications
 - [Requirements](/.kiro/specs/livestock-monitoring-system/requirements.md) - System requirements
 - [Design](/.kiro/specs/livestock-monitoring-system/design.md) - System design
@@ -526,7 +535,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **Your Name** - *Initial work*
+- **Ghifari Nafhan** - *Initial work*
 
 ## 🙏 Acknowledgments
 
@@ -538,19 +547,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@livestock-monitoring.com or join our Slack channel.
-
-## 🗺️ Roadmap
-
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics dan ML predictions
-- [ ] Multi-farm support
-- [ ] Export reports (PDF, Excel)
-- [ ] Integration dengan sistem ERP
-- [ ] Automated feeding system integration
-- [ ] Weather data integration
-- [ ] Veterinary management module
-
+For support, email nafhanghifari@gmail.com
 ---
 
 Made with ❤️ for better livestock management
