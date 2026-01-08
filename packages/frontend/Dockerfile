@@ -9,7 +9,8 @@ COPY package*.json ./
 
 # Install dependencies
 # Use npm install if package-lock.json doesn't exist
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Use --legacy-peer-deps to handle React 19 compatibility issues
+RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install --legacy-peer-deps; fi
 
 # Builder stage
 FROM node:18-alpine AS builder

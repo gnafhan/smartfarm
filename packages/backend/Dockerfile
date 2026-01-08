@@ -34,7 +34,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production && \
+RUN if [ -f package-lock.json ]; then npm ci --only=production; else npm install --production; fi && \
     npm cache clean --force
 
 # Copy built application from builder
