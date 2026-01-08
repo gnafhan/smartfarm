@@ -49,6 +49,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # Set environment to production
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
@@ -69,4 +71,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:3000/ || exit 1
 
 # Start application
+# Next.js 15 standalone uses different entry point
 CMD ["node", "server.js"]

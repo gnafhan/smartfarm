@@ -109,8 +109,8 @@ services:
       # Email (Optional)
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_USER: ${SMTP_USER:-noreply@livestock.com}
+      SMTP_PASS: ${SMTP_PASS:-dummy123}
       SMTP_FROM: ${SMTP_FROM:-noreply@livestock.com}
       
       # CORS
@@ -134,7 +134,7 @@ services:
       - traefik.http.routers.livestock-backend.rule=Host(`${BACKEND_SUBDOMAIN:-api-livestock}.${DOMAIN:-localhost}`)
       - traefik.http.routers.livestock-backend.entrypoints=web,websecure
       - traefik.http.routers.livestock-backend.tls=true
-      - traefik.http.routers.livestock-backend.tls.certresolver=${CERT_RESOLVER:-mytlschallenge}
+      - traefik.http.routers.livestock-backend.tls.certresolver=mytlschallenge
       - traefik.http.services.livestock-backend.loadbalancer.server.port=3001
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/"]
@@ -175,14 +175,14 @@ services:
       - traefik.http.routers.livestock-frontend.rule=Host(`${FRONTEND_SUBDOMAIN:-livestock}.${DOMAIN:-localhost}`)
       - traefik.http.routers.livestock-frontend.entrypoints=web,websecure
       - traefik.http.routers.livestock-frontend.tls=true
-      - traefik.http.routers.livestock-frontend.tls.certresolver=${CERT_RESOLVER:-mytlschallenge}
+      - traefik.http.routers.livestock-frontend.tls.certresolver=mytlschallenge
       - traefik.http.services.livestock-frontend.loadbalancer.server.port=3000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 120s
     logging:
       driver: "json-file"
       options:
