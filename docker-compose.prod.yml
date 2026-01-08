@@ -233,7 +233,6 @@ volumes:
 networks:
   livestock-network:
     driver: bridge
-    internal: true
   traefik_network:
     external: true
     name: ${TRAEFIK_NETWORK:-traefik_network}
