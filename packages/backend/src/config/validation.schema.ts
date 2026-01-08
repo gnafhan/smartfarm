@@ -12,6 +12,7 @@ export const validationSchema = Joi.object({
   // Redis
   REDIS_HOST: Joi.string().default('localhost'),
   REDIS_PORT: Joi.number().default(6379),
+  REDIS_PASSWORD: Joi.string().optional().allow(''),
 
   // JWT
   JWT_SECRET: Joi.string().required(),

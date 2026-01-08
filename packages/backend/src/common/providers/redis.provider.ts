@@ -10,6 +10,7 @@ export const RedisProvider: Provider = {
     const redis = new Redis({
       host: configService.get<string>('redis.host'),
       port: configService.get<number>('redis.port'),
+      password: configService.get<string>('redis.password'),
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
