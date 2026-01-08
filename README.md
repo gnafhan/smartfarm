@@ -126,6 +126,8 @@ Sistem monitoring real-time untuk peternakan menggunakan sensor gas dan RFID rea
 
 ## 🚀 Quick Start
 
+### Development Setup
+
 ### 1. Clone Repository
 
 ```bash
@@ -223,6 +225,33 @@ Buka browser dan akses `http://localhost:3000`
 **Default Farmer Credentials:**
 - Email: `farmer@livestock.com`
 - Password: `farmer123`
+
+### Production Deployment
+
+For production deployment with Docker:
+
+```bash
+# Quick start (10 minutes)
+./deploy.sh check
+./deploy.sh build
+./deploy.sh start
+
+# Access application
+# Frontend: http://YOUR_SERVER_IP:3000
+# Backend: http://YOUR_SERVER_IP:3001
+```
+
+**📖 Full Production Guide:**
+- [Quick Start Production](QUICK-START-PRODUCTION.md) - Deploy in 10 minutes
+- [Production Deployment Guide](PRODUCTION-DEPLOYMENT.md) - Complete guide with SSL, monitoring, backup
+
+**🔧 Production Features:**
+- ✅ Docker Compose for easy deployment
+- ✅ Nginx reverse proxy with SSL support
+- ✅ Automated backups
+- ✅ Health checks and monitoring
+- ✅ Production-optimized builds
+- ✅ Ready for real ESP32/Arduino devices
 
 ## 📚 Dokumentasi
 
