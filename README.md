@@ -230,24 +230,42 @@ Buka browser dan akses `http://localhost:3000`
 
 For production deployment with Docker:
 
+**Option 1: Traefik (Automatic SSL/HTTPS)**
 ```bash
-# Quick start (10 minutes)
+# Configure domain in .env
+DOMAIN=yourdomain.com
+
+# Deploy with Traefik
+docker network create traefik_network
+./deploy.sh build
+./deploy.sh start
+
+# Access with HTTPS
+# Frontend: https://livestock.yourdomain.com
+# Backend: https://api-livestock.yourdomain.com
+```
+
+**Option 2: Direct Access (Local Network)**
+```bash
+# Simple deployment
 ./deploy.sh check
 ./deploy.sh build
 ./deploy.sh start
 
-# Access application
+# Access via IP
 # Frontend: http://YOUR_SERVER_IP:3000
 # Backend: http://YOUR_SERVER_IP:3001
 ```
 
 **📖 Full Production Guide:**
 - [Quick Start Production](QUICK-START-PRODUCTION.md) - Deploy in 10 minutes
-- [Production Deployment Guide](PRODUCTION-DEPLOYMENT.md) - Complete guide with SSL, monitoring, backup
+- [Traefik Deployment](TRAEFIK-DEPLOYMENT.md) - Automatic SSL with Traefik
+- [Production Deployment Guide](PRODUCTION-DEPLOYMENT.md) - Complete guide
 
 **🔧 Production Features:**
 - ✅ Docker Compose for easy deployment
-- ✅ Nginx reverse proxy with SSL support
+- ✅ Traefik reverse proxy with automatic SSL
+- ✅ Nginx alternative (manual SSL)
 - ✅ Automated backups
 - ✅ Health checks and monitoring
 - ✅ Production-optimized builds

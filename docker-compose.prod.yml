@@ -85,10 +85,9 @@ services:
       dockerfile: Dockerfile
       args:
         NODE_ENV: production
+    image: livestock-backend:latest
     container_name: livestock-backend-prod
     restart: always
-    ports:
-      - "3001:3001"
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -117,7 +116,7 @@ services:
       SMTP_FROM: ${SMTP_FROM:-noreply@livestock.com}
       
       # CORS
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      CORS_ORIGIN: https://${FRONTEND_SUBDOMAIN:-livestock}.${DOMAIN:-localhost}
     volumes:
       - ./logs/backend:/app/logs
     depends_on:
@@ -129,6 +128,16 @@ services:
         condition: service_healthy
     networks:
       - livestock-network
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      # HTTP Router
+      - traefik.http.routers.livestock-backend.rule=Host(`${BACKEND_SUBDOMAIN:-api-livestock}.${DOMAIN:-localhost}`)
+      - traefik.http.routers.livestock-backend.entrypoints=web,websecure
+      - traefik.http.routers.livestock-backend.tls=true
+      - traefik.http.routers.livestock-backend.tls.certresolver=mytlschallenge
+      - traefik.http.services.livestock-backend.loadbalancer.server.port=3001
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/"]
       interval: 30s
@@ -147,21 +156,29 @@ services:
       context: ./packages/frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
-        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-http://localhost:3001}
+        NEXT_PUBLIC_API_URL: https://${BACKEND_SUBDOMAIN:-api-livestock}.${DOMAIN:-localhost}
+        NEXT_PUBLIC_WS_URL: https://${BACKEND_SUBDOMAIN:-api-livestock}.${DOMAIN:-localhost}
+    image: livestock-frontend:latest
     container_name: livestock-frontend-prod
     restart: always
-    ports:
-      - "3000:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
-      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-http://localhost:3001}
+      NEXT_PUBLIC_API_URL: https://${BACKEND_SUBDOMAIN:-api-livestock}.${DOMAIN:-localhost}
+      NEXT_PUBLIC_WS_URL: https://${BACKEND_SUBDOMAIN:-api-livestock}.${DOMAIN:-localhost}
     depends_on:
       backend:
         condition: service_healthy
     networks:
-      - livestock-network
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      # HTTP Router
+      - traefik.http.routers.livestock-frontend.rule=Host(`${FRONTEND_SUBDOMAIN:-livestock}.${DOMAIN:-localhost}`)
+      - traefik.http.routers.livestock-frontend.entrypoints=web,websecure
+      - traefik.http.routers.livestock-frontend.tls=true
+      - traefik.http.routers.livestock-frontend.tls.certresolver=mytlschallenge
+      - traefik.http.services.livestock-frontend.loadbalancer.server.port=3000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
@@ -174,8 +191,8 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Nginx Reverse Proxy (Optional - for production with SSL)
-  nginx:
+  # Nginx Reverse Proxy (Optional - disabled when using external Traefik)
+  # nginx:
     image: nginx:alpine
     container_name: livestock-nginx-prod
     restart: always
@@ -217,6 +234,7 @@ volumes:
 networks:
   livestock-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+    internal: true
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}

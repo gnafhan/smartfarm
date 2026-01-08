@@ -11,6 +11,24 @@ Panduan cepat untuk deploy ke production dalam 10 menit.
 
 ## 📝 Step-by-Step
 
+### Choose Your Deployment Method
+
+**Option 1: Traefik (Recommended for Production)**
+- ✅ Automatic SSL/HTTPS with Let's Encrypt
+- ✅ Zero-configuration certificate management
+- ✅ Built-in dashboard
+- ✅ Requires domain name
+
+**Option 2: Direct Access (Development/Local Network)**
+- ✅ Simple setup
+- ✅ No domain required
+- ✅ Access via IP address
+- ❌ No automatic SSL
+
+---
+
+## 🌐 Option 1: Traefik Deployment (with Domain)
+
 ### 1. Install Docker (jika belum)
 
 ```bash
@@ -47,18 +65,21 @@ cp .env.production .env
 nano .env
 ```
 
-**Minimal configuration yang HARUS diubah:**
+**Configuration for Traefik:**
 
 ```bash
+# Domain Configuration
+DOMAIN=yourdomain.com
+FRONTEND_SUBDOMAIN=livestock
+BACKEND_SUBDOMAIN=api-livestock
+
+# Traefik
+ACME_EMAIL=admin@yourdomain.com
+
 # Strong passwords
 MONGO_ROOT_PASSWORD=your_strong_password_here
 REDIS_PASSWORD=your_strong_password_here
 JWT_SECRET=your_super_secret_jwt_key_min_32_chars
-
-# Your server IP (e.g., 192.168.1.100)
-NEXT_PUBLIC_API_URL=http://YOUR_SERVER_IP:3001
-NEXT_PUBLIC_WS_URL=http://YOUR_SERVER_IP:3001
-CORS_ORIGIN=http://YOUR_SERVER_IP:3000
 ```
 
 **Generate strong passwords:**
@@ -67,7 +88,129 @@ CORS_ORIGIN=http://YOUR_SERVER_IP:3000
 openssl rand -base64 32
 ```
 
-### 4. Deploy
+### 4. Configure DNS
+
+Point your domain to server IP:
+
+```
+Type    Name              Value
+A       livestock         YOUR_SERVER_IP
+A       api-livestock     YOUR_SERVER_IP
+A       traefik           YOUR_SERVER_IP
+```
+
+### 5. Deploy
+
+```bash
+# Make deploy script executable
+chmod +x deploy.sh
+
+# Create Traefik network
+docker network create traefik_network
+
+# Check requirements
+./deploy.sh check
+
+# Build images (5-10 minutes)
+./deploy.sh build
+
+# Start all services
+./deploy.sh start
+
+# Check status
+./deploy.sh status
+```
+
+### 6. Verify
+
+```bash
+# Check all services are running
+docker compose -f docker-compose.prod.yml ps
+
+# All should show "healthy" status
+
+# Check SSL certificates
+docker compose -f docker-compose.prod.yml logs traefik | grep -i certificate
+```
+
+### 7. Access Application
+
+Open browser:
+- **Frontend**: `https://livestock.yourdomain.com`
+- **Backend API**: `https://api-livestock.yourdomain.com`
+- **Traefik Dashboard**: `https://traefik.yourdomain.com`
+
+**Default Login:**
+- Email: `admin@livestock.com`
+- Password: `admin123`
+
+⚠️ **IMPORTANT:** Change password immediately after first login!
+
+---
+
+## 💻 Option 2: Direct Access (without Domain)
+
+### 1. Install Docker (jika belum)
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Verify
+docker --version
+docker compose version
+```
+
+### 2. Clone Repository
+
+```bash
+# Clone
+git clone <repository-url>
+cd livestock-monitoring-system
+
+# Or if already cloned
+cd livestock-monitoring-system
+git pull origin main
+```
+
+### 3. Configure Environment (Simple)
+
+```bash
+# Copy template
+cp .env.production .env
+
+# Edit configuration
+nano .env
+```
+
+**Minimal configuration:**
+
+```bash
+# Strong passwords only
+MONGO_ROOT_PASSWORD=your_strong_password_here
+REDIS_PASSWORD=your_strong_password_here
+JWT_SECRET=your_super_secret_jwt_key_min_32_chars
+
+# Comment out or remove Traefik settings
+# DOMAIN=...
+# FRONTEND_SUBDOMAIN=...
+# BACKEND_SUBDOMAIN=...
+```
+
+### 4. Use Simple Docker Compose
+
+```bash
+# Use development docker-compose (without Traefik)
+docker-compose up -d
+
+# Or modify docker-compose.prod.yml to expose ports:
+# Uncomment ports in backend and frontend services
+```
+
+### 5. Deploy
 
 ```bash
 # Make deploy script executable
@@ -113,7 +256,41 @@ Open browser:
 
 ⚠️ **IMPORTANT:** Change password immediately after first login!
 
-### 7. Configure IoT Devices
+### 6. Access Application
+
+Open browser:
+- **Frontend**: `http://YOUR_SERVER_IP:3000`
+- **Backend API**: `http://YOUR_SERVER_IP:3001`
+
+**Default Login:**
+- Email: `admin@livestock.com`
+- Password: `admin123`
+
+⚠️ **IMPORTANT:** Change password immediately after first login!
+
+---
+
+## 🔧 Configure IoT Devices
+
+### For Traefik Deployment (with Domain)
+
+Update ESP32/Arduino `config.h`:
+
+```cpp
+// WiFi
+#define WIFI_SSID "Your_WiFi_SSID"
+#define WIFI_PASSWORD "Your_WiFi_Password"
+
+// MQTT Broker (use domain or IP)
+#define MQTT_SERVER "yourdomain.com"  // or YOUR_SERVER_IP
+#define MQTT_PORT 1883
+
+// Device ID (unique per device)
+#define DEVICE_ID "GAS-001"
+#define BARN_ID "BARN-001"
+```
+
+### For Direct Access (without Domain)
 
 Update ESP32/Arduino `config.h`:
 

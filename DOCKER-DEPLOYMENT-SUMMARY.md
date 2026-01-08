@@ -5,30 +5,53 @@ Dokumentasi lengkap untuk production deployment dengan Docker telah dibuat!
 ## 📁 Files Created
 
 ### Docker Configuration
-- **docker-compose.prod.yml** - Production Docker Compose configuration
+- **docker-compose.prod.yml** - Production Docker Compose with Traefik
 - **packages/backend/Dockerfile** - Backend production Dockerfile
 - **packages/frontend/Dockerfile** - Frontend production Dockerfile
 - **packages/backend/.dockerignore** - Backend Docker ignore
 - **packages/frontend/.dockerignore** - Frontend Docker ignore
 
-### Nginx Configuration
-- **nginx/nginx.conf** - Nginx reverse proxy configuration (HTTP & HTTPS)
+### Reverse Proxy Configuration
+- **Traefik** (Recommended) - Automatic SSL with Let's Encrypt
+- **nginx/nginx.conf** - Nginx alternative (manual SSL)
 
 ### Environment & Scripts
-- **.env.production** - Production environment template
+- **.env.production** - Production environment template with Traefik config
 - **deploy.sh** - Deployment automation script
 
 ### Documentation
 - **PRODUCTION-DEPLOYMENT.md** - Complete production deployment guide
+- **TRAEFIK-DEPLOYMENT.md** - Traefik-specific deployment guide
 - **QUICK-START-PRODUCTION.md** - Quick start guide (10 minutes)
 - **DOCKER-DEPLOYMENT-SUMMARY.md** - This file
 
 ## 🚀 Quick Start
 
+**With Traefik (Automatic SSL):**
 ```bash
 # 1. Configure environment
 cp .env.production .env
-nano .env  # Update passwords and server IP
+nano .env  # Update DOMAIN and passwords
+
+# 2. Create Traefik network
+docker network create traefik_network
+
+# 3. Deploy
+chmod +x deploy.sh
+./deploy.sh check
+./deploy.sh build
+./deploy.sh start
+
+# 4. Access
+# Frontend: https://livestock.yourdomain.com
+# Backend: https://api-livestock.yourdomain.com
+```
+
+**Without Domain (Direct Access):**
+```bash
+# 1. Configure environment
+cp .env.production .env
+nano .env  # Update passwords only
 
 # 2. Deploy
 chmod +x deploy.sh
@@ -45,16 +68,20 @@ chmod +x deploy.sh
 
 ### Services in docker-compose.prod.yml
 
-1. **MongoDB** - Database with authentication
-2. **Redis** - Cache with password protection
-3. **Mosquitto** - MQTT broker for IoT devices
-4. **Backend** - NestJS API (production build)
-5. **Frontend** - Next.js web app (standalone build)
-6. **Nginx** - Reverse proxy (optional, for SSL)
+1. **Traefik** - Reverse proxy with automatic SSL/HTTPS
+2. **MongoDB** - Database with authentication
+3. **Redis** - Cache with password protection
+4. **Mosquitto** - MQTT broker for IoT devices
+5. **Backend** - NestJS API (production build)
+6. **Frontend** - Next.js web app (standalone build)
+7. **Nginx** - Alternative reverse proxy (optional, manual SSL)
 
 ### Features
 
 ✅ Multi-stage Docker builds (optimized size)
+✅ Traefik with automatic Let's Encrypt SSL
+✅ Service discovery via Docker labels
+✅ Built-in Traefik dashboard
 ✅ Health checks for all services
 ✅ Automatic restart policies
 ✅ Log rotation
@@ -62,9 +89,10 @@ chmod +x deploy.sh
 ✅ Network isolation
 ✅ Non-root users
 ✅ Production environment variables
-✅ SSL/HTTPS support (Nginx)
-✅ Rate limiting (Nginx)
-✅ Gzip compression (Nginx)
+✅ Rate limiting (Traefik)
+✅ CORS configuration (Traefik)
+✅ Security headers (Traefik)
+✅ Gzip compression (Traefik)
 
 ## 🔧 Deploy Script Commands
 
@@ -84,10 +112,11 @@ chmod +x deploy.sh
 
 ## 📊 Architecture
 
+**With Traefik:**
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Nginx (Port 80/443)                   │
-│              Reverse Proxy + SSL + Caching              │
+│              Traefik (Port 80/443)                       │
+│    Reverse Proxy + Auto SSL + Service Discovery        │
 └────────────────────┬────────────────────────────────────┘
                      │
         ┌────────────┴────────────┐
@@ -104,6 +133,11 @@ chmod +x deploy.sh
 │   MongoDB      │  │     Redis       │  │   Mosquitto    │
 │   Port 27017   │  │   Port 6379     │  │   Port 1883    │
 └────────────────┘  └─────────────────┘  └────────────────┘
+                                                  │
+                                          ┌───────▼────────┐
+                                          │  IoT Devices   │
+                                          │ (ESP32/Arduino)│
+                                          └────────────────┘
 ```
 
 ## 🔐 Security Features
