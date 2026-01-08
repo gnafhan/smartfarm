@@ -24,9 +24,16 @@ async function bootstrap(): Promise<void> {
   );
 
   // Enable CORS
+  const frontendUrl = configService.get<string>('frontendUrl');
   app.enableCors({
-    origin: configService.get<string>('frontendUrl'),
+    origin: [
+      frontendUrl,
+      'https://livestock.nafhan.com',
+      'http://localhost:3000', // for development
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   const port = configService.get<number>('port') ?? 3001;

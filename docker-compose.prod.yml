@@ -114,7 +114,7 @@ services:
       SMTP_FROM: ${SMTP_FROM:-noreply@livestock.com}
       
       # CORS
-      FRONTEND_URL: https://${FRONTEND_SUBDOMAIN:-livestock}.${DOMAIN:-localhost}
+      FRONTEND_URL: https://livestock.nafhan.com
     volumes:
       - ./logs/backend:/app/logs
     depends_on:
