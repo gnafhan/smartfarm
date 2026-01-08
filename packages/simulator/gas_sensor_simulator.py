@@ -59,7 +59,6 @@ class GasSensorSimulator:
         """Initialize sensor configurations"""
         barn_ids = [
             "BARN-001",
-            "BARN-002",
         ]
 
         for i in range(self.num_sensors):
