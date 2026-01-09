@@ -20,13 +20,13 @@ export class DeviceLog {
   @Prop({ required: true, enum: DeviceEventType })
   eventType: DeviceEventType;
 
-  @Prop({ enum: DeviceStatus })
+  @Prop({ type: String, enum: DeviceStatus })
   status?: DeviceStatus;
 
-  @Prop({ enum: DeviceStatus })
+  @Prop({ type: String, enum: DeviceStatus })
   previousStatus?: DeviceStatus;
 
-  @Prop({ enum: DisconnectReason })
+  @Prop({ type: String, enum: DisconnectReason })
   disconnectReason?: DisconnectReason;
 
   @Prop()

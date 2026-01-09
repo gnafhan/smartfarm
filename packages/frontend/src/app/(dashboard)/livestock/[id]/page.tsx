@@ -5,6 +5,11 @@ import { useRouter, useParams } from 'next/navigation';
 import Card from '@/components/card';
 import { api } from '@/lib/axios';
 import { MdEdit, MdArrowBack, MdQrCode } from 'react-icons/md';
+import LivestockHealthHistory from '@/components/livestock/LivestockHealthHistory';
+import AddHealthEventForm from '@/components/livestock/AddHealthEventForm';
+import WeightHistoryTable from '@/components/livestock/WeightHistoryTable';
+import AddWeightEntryForm from '@/components/livestock/AddWeightEntryForm';
+import WeightChart from '@/components/livestock/WeightChart';
 
 interface Farm {
   id: string;
@@ -24,6 +29,14 @@ interface EntryExitLog {
   barnId: string;
   barnName?: string;
   rfidReaderId: string;
+}
+
+interface WeightEntry {
+  id: string;
+  livestockId: string;
+  weight: number;
+  measurementDate: string;
+  notes?: string;
 }
 
 interface Livestock {
@@ -56,6 +69,13 @@ export default function LivestockDetailPage() {
   const [farm, setFarm] = useState<Farm | null>(null);
   const [barn, setBarn] = useState<Barn | null>(null);
   const [latestLog, setLatestLog] = useState<EntryExitLog | null>(null);
+  const [activeTab, setActiveTab] = useState<'details' | 'health' | 'weight'>('details');
+  const [showAddEventForm, setShowAddEventForm] = useState(false);
+  const [healthHistoryKey, setHealthHistoryKey] = useState(0);
+  const [showAddWeightForm, setShowAddWeightForm] = useState(false);
+  const [editingWeightEntry, setEditingWeightEntry] = useState<WeightEntry | null>(null);
+  const [weightTableKey, setWeightTableKey] = useState(0);
+  const [weightChartKey, setWeightChartKey] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -121,6 +141,30 @@ export default function LivestockDetailPage() {
     }
   };
 
+  const handleHealthEventSuccess = () => {
+    setShowAddEventForm(false);
+    // Force refresh of health history by updating key
+    setHealthHistoryKey(prev => prev + 1);
+  };
+
+  const handleWeightEntrySuccess = () => {
+    setShowAddWeightForm(false);
+    setEditingWeightEntry(null);
+    // Force refresh of weight table and chart
+    setWeightTableKey(prev => prev + 1);
+    setWeightChartKey(prev => prev + 1);
+  };
+
+  const handleEditWeightEntry = (entry: WeightEntry) => {
+    setEditingWeightEntry(entry);
+    setShowAddWeightForm(true);
+  };
+
+  const handleWeightRefresh = () => {
+    // Refresh chart when table data changes
+    setWeightChartKey(prev => prev + 1);
+  };
+
   if (loading) {
     return (
       <div className="mt-5 flex h-full w-full items-center justify-center">
@@ -173,7 +217,43 @@ export default function LivestockDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      {/* Tabs */}
+      <div className="mb-5 flex gap-2 border-b border-gray-200 dark:border-white/10">
+        <button
+          onClick={() => setActiveTab('details')}
+          className={`px-4 py-2 text-sm font-medium transition ${
+            activeTab === 'details'
+              ? 'border-b-2 border-brand-500 text-brand-500 dark:border-brand-400 dark:text-brand-400'
+              : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          Details
+        </button>
+        <button
+          onClick={() => setActiveTab('health')}
+          className={`px-4 py-2 text-sm font-medium transition ${
+            activeTab === 'health'
+              ? 'border-b-2 border-brand-500 text-brand-500 dark:border-brand-400 dark:text-brand-400'
+              : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          Health History
+        </button>
+        <button
+          onClick={() => setActiveTab('weight')}
+          className={`px-4 py-2 text-sm font-medium transition ${
+            activeTab === 'weight'
+              ? 'border-b-2 border-brand-500 text-brand-500 dark:border-brand-400 dark:text-brand-400'
+              : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          Weight Tracking
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'details' ? (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">{/* Details content */}
         {/* Main Info */}
         <Card extra="col-span-2 p-6">
           <h2 className="mb-4 text-lg font-bold text-navy-700 dark:text-white">
@@ -344,7 +424,69 @@ export default function LivestockDetailPage() {
             </div>
           </div>
         </Card>
-      </div>
+        </div>
+      ) : activeTab === 'health' ? (
+        <div>
+          <LivestockHealthHistory 
+            key={healthHistoryKey}
+            livestockId={id} 
+            onAddEvent={() => setShowAddEventForm(true)}
+          />
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {/* Weight Chart */}
+          <WeightChart 
+            key={weightChartKey}
+            livestockId={id}
+            barnId={livestock.currentBarnId}
+          />
+          
+          {/* Add Weight Entry Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                setEditingWeightEntry(null);
+                setShowAddWeightForm(true);
+              }}
+              className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-600 dark:bg-brand-400 dark:hover:bg-brand-300 touch-manipulation min-h-[44px]"
+            >
+              <MdEdit size={20} />
+              Add Weight Entry
+            </button>
+          </div>
+          
+          {/* Weight History Table */}
+          <WeightHistoryTable 
+            key={weightTableKey}
+            livestockId={id}
+            onEdit={handleEditWeightEntry}
+            onRefresh={handleWeightRefresh}
+          />
+        </div>
+      )}
+
+      {/* Add Health Event Form Modal */}
+      {showAddEventForm && (
+        <AddHealthEventForm
+          livestockId={id}
+          onSuccess={handleHealthEventSuccess}
+          onCancel={() => setShowAddEventForm(false)}
+        />
+      )}
+
+      {/* Add/Edit Weight Entry Form Modal */}
+      {showAddWeightForm && (
+        <AddWeightEntryForm
+          livestockId={id}
+          existingEntry={editingWeightEntry || undefined}
+          onSuccess={handleWeightEntrySuccess}
+          onCancel={() => {
+            setShowAddWeightForm(false);
+            setEditingWeightEntry(null);
+          }}
+        />
+      )}
     </div>
   );
 }

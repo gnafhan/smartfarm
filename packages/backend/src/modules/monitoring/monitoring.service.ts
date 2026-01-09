@@ -418,4 +418,116 @@ export class MonitoringService {
 
     return AlertLevel.NORMAL;
   }
+
+  /**
+   * Get methane readings for a period with aggregation
+   * Requirements: 3.2, 3.3
+   *
+   * @param barnId - The barn ID to get readings for
+   * @param startDate - Start of the period
+   * @param endDate - End of the period
+   * @param aggregation - Aggregation level (hourly or daily)
+   * @returns Array of methane readings with dates
+   */
+  async getMethaneReadingsForPeriod(
+    barnId: string,
+    startDate: Date,
+    endDate: Date,
+    aggregation: 'hourly' | 'daily' = 'daily',
+  ): Promise<Array<{ date: Date; methanePpm: number }>> {
+    if (!Types.ObjectId.isValid(barnId)) {
+      return [];
+    }
+
+    const matchStage: Record<string, unknown> = {
+      barnId: new Types.ObjectId(barnId),
+      timestamp: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    };
+
+    const dateGrouping = this.getDateGrouping(aggregation);
+
+    const pipeline: PipelineStage[] = [
+      { $match: matchStage },
+      {
+        $group: {
+          _id: dateGrouping,
+          avgMethanePpm: { $avg: '$methanePpm' },
+          timestamp: { $first: '$timestamp' },
+        },
+      },
+      { $sort: { timestamp: 1 as const } },
+    ];
+
+    const results = await this.gasSensorReadingModel
+      .aggregate<{
+        _id: Record<string, number>;
+        avgMethanePpm: number;
+        timestamp: Date;
+      }>(pipeline)
+      .exec();
+
+    return results.map((result) => ({
+      date: result.timestamp,
+      methanePpm: Math.round(result.avgMethanePpm * 100) / 100,
+    }));
+  }
+
+  /**
+   * Get temperature readings for a period with aggregation
+   * Requirements: 3.2, 3.3
+   *
+   * @param barnId - The barn ID to get readings for
+   * @param startDate - Start of the period
+   * @param endDate - End of the period
+   * @param aggregation - Aggregation level (hourly or daily)
+   * @returns Array of temperature readings with dates
+   */
+  async getTemperatureReadingsForPeriod(
+    barnId: string,
+    startDate: Date,
+    endDate: Date,
+    aggregation: 'hourly' | 'daily' = 'daily',
+  ): Promise<Array<{ date: Date; temperature: number }>> {
+    if (!Types.ObjectId.isValid(barnId)) {
+      return [];
+    }
+
+    const matchStage: Record<string, unknown> = {
+      barnId: new Types.ObjectId(barnId),
+      timestamp: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    };
+
+    const dateGrouping = this.getDateGrouping(aggregation);
+
+    const pipeline: PipelineStage[] = [
+      { $match: matchStage },
+      {
+        $group: {
+          _id: dateGrouping,
+          avgTemperature: { $avg: '$temperature' },
+          timestamp: { $first: '$timestamp' },
+        },
+      },
+      { $sort: { timestamp: 1 as const } },
+    ];
+
+    const results = await this.gasSensorReadingModel
+      .aggregate<{
+        _id: Record<string, number>;
+        avgTemperature: number;
+        timestamp: Date;
+      }>(pipeline)
+      .exec();
+
+    return results.map((result) => ({
+      date: result.timestamp,
+      temperature: Math.round(result.avgTemperature * 100) / 100,
+    }));
+  }
 }

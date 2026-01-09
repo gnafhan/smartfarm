@@ -9,6 +9,14 @@ import {
   EntryExitLog,
   EntryExitLogSchema,
 } from '../../schemas/entry-exit-log.schema';
+import {
+  HealthEvent,
+  HealthEventSchema,
+} from '../../schemas/health-event.schema';
+import {
+  WeightEntry,
+  WeightEntrySchema,
+} from '../../schemas/weight-entry.schema';
 import { IsUniqueEarTagConstraint } from '../../common/validators/is-unique-ear-tag.validator';
 
 @Module({
@@ -18,6 +26,8 @@ import { IsUniqueEarTagConstraint } from '../../common/validators/is-unique-ear-
       { name: Farm.name, schema: FarmSchema },
       { name: Barn.name, schema: BarnSchema },
       { name: EntryExitLog.name, schema: EntryExitLogSchema },
+      { name: HealthEvent.name, schema: HealthEventSchema },
+      { name: WeightEntry.name, schema: WeightEntrySchema },
     ]),
   ],
   controllers: [LivestockController],

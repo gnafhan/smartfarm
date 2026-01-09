@@ -18,3 +18,9 @@ export * from './alert.schema';
 
 // Farm Schema
 export * from './farm.schema';
+
+// Health Event Schema
+export * from './health-event.schema';
+
+// Weight Entry Schema
+export * from './weight-entry.schema';

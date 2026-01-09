@@ -19,6 +19,8 @@ import { MqttModule } from './modules/mqtt';
 import { WebsocketModule } from './modules/websocket';
 import { DashboardModule } from './modules/dashboard';
 import { DevicesModule } from './modules/devices/devices.module';
+import { HealthEventsModule } from './modules/health-events';
+import { WeightEntriesModule } from './modules/weight-entries';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -62,6 +64,8 @@ import { AppService } from './app.service';
     MqttModule,
     WebsocketModule,
     DashboardModule,
+    HealthEventsModule,
+    WeightEntriesModule,
   ],
   controllers: [AppController],
   providers: [AppService, RedisProvider],

@@ -18,6 +18,14 @@ import {
   EntryExitLog,
   EntryExitLogDocument,
 } from '../../schemas/entry-exit-log.schema';
+import {
+  HealthEvent,
+  HealthEventDocument,
+} from '../../schemas/health-event.schema';
+import {
+  WeightEntry,
+  WeightEntryDocument,
+} from '../../schemas/weight-entry.schema';
 import { CreateLivestockDto } from './dto/create-livestock.dto';
 import { UpdateLivestockDto } from './dto/update-livestock.dto';
 import { LivestockResponseDto } from './dto/livestock-response.dto';
@@ -38,6 +46,10 @@ export class LivestockService {
     private readonly barnModel: Model<BarnDocument>,
     @InjectModel(EntryExitLog.name)
     private readonly entryExitLogModel: Model<EntryExitLogDocument>,
+    @InjectModel(HealthEvent.name)
+    private readonly healthEventModel: Model<HealthEventDocument>,
+    @InjectModel(WeightEntry.name)
+    private readonly weightEntryModel: Model<WeightEntryDocument>,
   ) {}
 
   /**
@@ -384,7 +396,13 @@ export class LivestockService {
 
   /**
    * Soft delete a livestock record
-   * Requirements: 3.5
+   * Requirements: 3.5, 5.5, 5.6
+   * 
+   * Implements cascade delete strategy:
+   * - Deletes all associated health events
+   * - Deletes all associated weight entries
+   * - Sets livestock status to DECEASED
+   * - Updates barn occupancy
    */
   async remove(id: string): Promise<void> {
     if (!Types.ObjectId.isValid(id)) {
@@ -396,21 +414,37 @@ export class LivestockService {
       throw new NotFoundException('Livestock not found');
     }
 
-    // Soft delete by setting status to inactive
-    await this.livestockModel
-      .findByIdAndUpdate(id, { status: LivestockStatus.DECEASED })
-      .exec();
-
-    // Update barn occupancy if was assigned to a barn
-    if (livestock.currentBarnId) {
-      await this.barnModel
-        .findByIdAndUpdate(livestock.currentBarnId, {
-          $inc: { currentOccupancy: -1 },
-        })
+    try {
+      // Cascade delete: Remove all associated health events
+      await this.healthEventModel
+        .deleteMany({ livestockId: new Types.ObjectId(id) })
         .exec();
-    }
 
-    // Note: We don't decrement farm stats as the livestock still exists (soft delete)
+      // Cascade delete: Remove all associated weight entries
+      await this.weightEntryModel
+        .deleteMany({ livestockId: new Types.ObjectId(id) })
+        .exec();
+
+      // Soft delete by setting status to deceased
+      await this.livestockModel
+        .findByIdAndUpdate(id, { status: LivestockStatus.DECEASED })
+        .exec();
+
+      // Update barn occupancy if was assigned to a barn
+      if (livestock.currentBarnId) {
+        await this.barnModel
+          .findByIdAndUpdate(livestock.currentBarnId, {
+            $inc: { currentOccupancy: -1 },
+          })
+          .exec();
+      }
+
+      // Note: We don't decrement farm stats as the livestock still exists (soft delete)
+    } catch (error) {
+      throw new BadRequestException(
+        'Failed to delete livestock: ' + (error as Error).message,
+      );
+    }
   }
 
   /**

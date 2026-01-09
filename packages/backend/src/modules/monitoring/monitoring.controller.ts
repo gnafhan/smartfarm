@@ -6,6 +6,9 @@ import {
   SensorReadingResponseDto,
   AggregatedReadingDto,
   LatestReadingResponseDto,
+  ChartDataQueryDto,
+  MethaneChartDataDto,
+  TemperatureChartDataDto,
 } from './dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../auth/guards';
@@ -93,5 +96,45 @@ export class MonitoringController {
     @Param('barnId') barnId: string,
   ): Promise<string[]> {
     return this.monitoringService.getAvailableSensors(barnId);
+  }
+
+  /**
+   * Get methane chart data for weight tracking overlay
+   * Requirements: 3.2
+   *
+   * @param queryDto - Query parameters including barnId, date range, and aggregation
+   * @returns Array of methane readings with dates
+   */
+  @Get('methane-chart-data')
+  async getMethaneChartData(
+    @Query() queryDto: ChartDataQueryDto,
+  ): Promise<MethaneChartDataDto[]> {
+    const { barnId, startDate, endDate, aggregation = 'daily' } = queryDto;
+    return this.monitoringService.getMethaneReadingsForPeriod(
+      barnId,
+      new Date(startDate),
+      new Date(endDate),
+      aggregation,
+    );
+  }
+
+  /**
+   * Get temperature chart data for weight tracking overlay
+   * Requirements: 3.3
+   *
+   * @param queryDto - Query parameters including barnId, date range, and aggregation
+   * @returns Array of temperature readings with dates
+   */
+  @Get('temperature-chart-data')
+  async getTemperatureChartData(
+    @Query() queryDto: ChartDataQueryDto,
+  ): Promise<TemperatureChartDataDto[]> {
+    const { barnId, startDate, endDate, aggregation = 'daily' } = queryDto;
+    return this.monitoringService.getTemperatureReadingsForPeriod(
+      barnId,
+      new Date(startDate),
+      new Date(endDate),
+      aggregation,
+    );
   }
 }

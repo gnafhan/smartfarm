@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +11,9 @@ async function bootstrap(): Promise<void> {
 
   // Enable class-validator to use NestJS dependency injection
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
+  // Enable global exception filter
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // Enable validation
   app.useGlobalPipes(
